@@ -1,5 +1,4 @@
-// Firestore Data Types
-// Based on NUXT_DATA_STRUCTURE_GUIDE.md
+// View-model types used by the generic challenge components.
 
 export interface PointsBreakdown {
   count5Pts: number;
@@ -57,7 +56,7 @@ export interface RegionSummary {
 }
 
 export interface RankingDocument {
-  uniqueIndex: string;
+  uniqueIndex: number;
   name: string;
   clubIndex: string;
   clubName: string;
@@ -108,18 +107,3 @@ export interface ComputationMetadata {
   regionsProcessed: string[];
   levelsProcessed: string[];
 }
-
-// Top regions enum (commonly used values)
-export const TOP_REGIONS = {
-  LIEGE: 'LIEGE',
-  NAMUR: 'NAMUR',
-  LUXEMBOURG: 'LUXEMBOURG',
-  HAINAUT: 'HAINAUT',
-  BRABANT: 'BRABANT',
-  ANTWERP: 'ANTWERP',
-  VERVIERS: 'VERVIERS',
-  HUY_WAREMME: 'HUY_WAREMME',
-} as const;
-
-export type TopRegion = typeof TOP_REGIONS[keyof typeof TOP_REGIONS];
-

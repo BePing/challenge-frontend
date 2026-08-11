@@ -1,4 +1,4 @@
 User-Agent: *
 Allow: /
 
-Sitemap: https://top6.beeping.com/sitemap.xml
+Sitemap: https://challenges.beping.be/sitemap.xml

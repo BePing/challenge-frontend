@@ -12,16 +12,16 @@ useHead({
   htmlAttrs: {
     lang: 'fr'
   },
-  title: 'Top 6 - Classements Tennis de Table',
+  title: 'Challenges communautaires - Beping',
   meta: [
     { charset: 'utf-8' },
     { name: 'viewport', content: 'width=device-width, initial-scale=1' },
-    { name: 'description', content: 'Consultez les classements Top 6 du tennis de table belge. Rankings hebdomadaires pour toutes les régions et niveaux (National WB, Provincial 1-6)' },
-    { name: 'keywords', content: 'tennis de table, classements, top 6, ping pong, belgique, rankings, tt' },
+    { name: 'description', content: 'Consultez les challenges communautaires et non officiels de tennis de table publiés par Beping.' },
+    { name: 'keywords', content: 'tennis de table, challenges, classements communautaires, ping pong, belgique, Beping' },
     
     // Open Graph / Facebook
     { property: 'og:type', content: 'website' },
-    { property: 'og:site_name', content: 'Top 6 Tennis de Table' },
+    { property: 'og:site_name', content: 'Challenges Beping' },
     { property: 'og:locale', content: 'fr_BE' },
     
     // Twitter Card
@@ -31,28 +31,30 @@ useHead({
     { name: 'theme-color', content: '#0F172A' },
     { name: 'apple-mobile-web-app-capable', content: 'yes' },
     { name: 'apple-mobile-web-app-status-bar-style', content: 'default' },
-    { name: 'apple-mobile-web-app-title', content: 'Top 6' }
+    { name: 'apple-mobile-web-app-title', content: 'Challenges Beping' }
   ],
   link: [
     { rel: 'icon', type: 'image/x-icon', href: '/favicon.ico' },
-    { rel: 'canonical', href: 'https://top6.beeping.com' },
+    { rel: 'shortcut icon', type: 'image/x-icon', href: '/favicon.ico' },
+    { rel: 'apple-touch-icon', href: '/favicon.ico' },
+    { rel: 'canonical', href: 'https://challenges.beping.be' },
     { rel: 'sitemap', type: 'application/xml', href: '/sitemap.xml' }
   ]
 })
 
 useSeoMeta({
-  title: 'Top 6 - Classements Tennis de Table',
-  description: 'Consultez les classements Top 6 du tennis de table belge. Rankings hebdomadaires pour toutes les régions et niveaux (National WB, Provincial 1-6)',
-  ogTitle: 'Top 6 - Classements Tennis de Table',
-  ogDescription: 'Consultez les classements Top 6 du tennis de table belge. Rankings hebdomadaires pour toutes les régions et niveaux (National WB, Provincial 1-6)',
+  title: 'Challenges communautaires - Beping',
+  description: 'Consultez les challenges communautaires et non officiels de tennis de table publiés par Beping.',
+  ogTitle: 'Challenges communautaires - Beping',
+  ogDescription: 'Classements communautaires et non officiels de tennis de table.',
   ogType: 'website',
-  ogSiteName: 'Top 6 Tennis de Table',
+  ogSiteName: 'Challenges Beping',
   ogLocale: 'fr_BE',
-  ogImage: 'https://top6.beeping.com/og-image.svg',
-  ogUrl: 'https://top6.beeping.com',
+  ogImage: 'https://challenges.beping.be/og-image.svg',
+  ogUrl: 'https://challenges.beping.be',
   twitterCard: 'summary_large_image',
-  twitterTitle: 'Top 6 - Classements Tennis de Table',
-  twitterDescription: 'Consultez les classements Top 6 du tennis de table belge. Rankings hebdomadaires pour toutes les régions et niveaux (National WB, Provincial 1-6)',
-  twitterImage: 'https://top6.beeping.com/og-image.svg'
+  twitterTitle: 'Challenges communautaires - Beping',
+  twitterDescription: 'Classements communautaires et non officiels de tennis de table.',
+  twitterImage: 'https://challenges.beping.be/og-image.svg'
 })
 </script>

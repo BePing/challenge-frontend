@@ -1,13 +1,13 @@
 <template>
   <Card>
-    <CardHeader class="space-y-4">
-      <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+    <CardHeader class="space-y-3 sm:space-y-4 px-3 sm:px-6">
+      <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-4">
         <div>
-          <p class="text-sm text-muted-foreground" v-if="selectedLevelInfo">
-            Niveau: {{ selectedLevelInfo.name }} • {{ selectedLevelInfo.playerCount }} joueurs
+          <p class="text-xs sm:text-sm text-muted-foreground" v-if="selectedLevelInfo">
+            <span class="hidden sm:inline">Niveau: {{ selectedLevelInfo.name }} • </span>{{ selectedLevelInfo.playerCount }} joueurs
           </p>
         </div>
-        <div class="flex items-center gap-3">
+        <div class="flex items-center gap-2 sm:gap-3">
           <PlayerSearch v-model="searchQuery" :loading="loadingSearch" />
         </div>
       </div>
@@ -19,7 +19,7 @@
             :key="levelOption.code"
             :variant="level === levelOption.code ? 'default' : 'outline'"
             :class="[
-              'h-auto px-4 py-2 text-center transition-all',
+              'h-auto px-3 sm:px-4 py-2.5 sm:py-2 text-center transition-all min-h-[44px] touch-manipulation',
               level === levelOption.code 
                 ? 'ring-2 ring-primary ring-offset-1' 
                 : 'hover:bg-muted'
@@ -27,9 +27,9 @@
             size="sm"
             @click="selectLevel(levelOption.code)"
           >
-            <div class="flex items-center gap-2">
-              <div class="font-bold text-sm">{{ levelOption.code }}</div>
-              <Badge variant="secondary" class="text-xs">
+            <div class="flex items-center gap-1.5 sm:gap-2">
+              <div class="font-bold text-xs sm:text-sm">{{ levelOption.code }}</div>
+              <Badge variant="secondary" class="text-[10px] sm:text-xs">
                 {{ levelOption.playerCount }}
               </Badge>
             </div>
@@ -37,49 +37,50 @@
         </div>
       </div>
     </CardHeader>
-    <CardContent>
-      <div class="rounded-md border overflow-x-auto">
-        <Table class="min-w-[640px]">
+    <CardContent class="px-0 sm:px-6">
+      <div class="rounded-md border overflow-x-auto -mx-0 sm:mx-0">
+        <Table class="min-w-[520px] sm:min-w-[640px]">
           <TableHeader>
             <TableRow class="bg-muted/50">
-              <TableHead class="w-20 text-left">Position</TableHead>
-              <TableHead class="text-left">Joueur</TableHead>
-              <TableHead class="text-left">Club</TableHead>
-              <TableHead class="text-right w-32">Points</TableHead>
-              <TableHead class="text-center w-24">Matchs</TableHead>
-              <TableHead class="text-right w-32">Actions</TableHead>
+              <TableHead class="w-16 sm:w-20 text-left text-xs sm:text-sm">Pos</TableHead>
+              <TableHead class="text-left text-xs sm:text-sm">Joueur</TableHead>
+              <TableHead class="hidden sm:table-cell text-left text-xs sm:text-sm">Club</TableHead>
+              <TableHead class="text-right w-20 sm:w-32 text-xs sm:text-sm">Points</TableHead>
+              <TableHead class="hidden md:table-cell text-center w-24 text-xs sm:text-sm">Matchs</TableHead>
+              <TableHead class="text-right w-12 sm:w-32 text-xs sm:text-sm">Action</TableHead>
             </TableRow>
           </TableHeader>
         <TableBody>
           <!-- Loading skeleton rows -->
           <template v-if="loading">
             <TableRow v-for="i in 8" :key="`skeleton-${i}`">
-              <TableCell class="text-left">
-                <div class="flex items-center gap-2">
-                  <Skeleton class="h-6 w-12 rounded" />
-                  <Skeleton class="h-4 w-4 rounded" />
+              <TableCell class="text-left px-2 sm:px-4">
+                <div class="flex items-center gap-1.5 sm:gap-2">
+                  <Skeleton class="h-5 w-10 sm:h-6 sm:w-12 rounded" />
+                  <Skeleton class="h-3.5 w-3.5 sm:h-4 sm:w-4 rounded" />
                 </div>
               </TableCell>
-              <TableCell class="text-left">
-                <div class="space-y-1">
-                  <Skeleton class="h-4 w-32" />
-                  <Skeleton class="h-3 w-16" />
+              <TableCell class="text-left px-2 sm:px-4">
+                <div class="space-y-0.5 sm:space-y-1">
+                  <Skeleton class="h-4 w-28 sm:w-32" />
+                  <Skeleton class="hidden sm:block h-3 w-16" />
+                  <Skeleton class="sm:hidden h-3 w-20" />
                 </div>
               </TableCell>
-              <TableCell class="text-left">
+              <TableCell class="hidden sm:table-cell text-left px-2 sm:px-4">
                 <Skeleton class="h-4 w-24" />
               </TableCell>
-              <TableCell class="text-right">
-                <div class="space-y-1 flex flex-col items-end">
-                  <Skeleton class="h-4 w-12" />
-                  <Skeleton class="h-3 w-20" />
+              <TableCell class="text-right px-2 sm:px-4">
+                <div class="space-y-0.5 sm:space-y-1 flex flex-col items-end">
+                  <Skeleton class="h-4 w-10 sm:h-4 sm:w-12" />
+                  <Skeleton class="hidden md:block h-3 w-20" />
                 </div>
               </TableCell>
-              <TableCell class="text-center">
-                <Skeleton class="h-6 w-12 mx-auto rounded" />
+              <TableCell class="hidden md:table-cell text-center px-2 sm:px-4">
+                <Skeleton class="h-5 w-10 sm:h-6 sm:w-12 mx-auto rounded" />
               </TableCell>
-              <TableCell class="text-right">
-                <Skeleton class="h-8 w-20 rounded ml-auto" />
+              <TableCell class="text-right px-2 sm:px-4">
+                <Skeleton class="h-9 w-9 sm:h-8 sm:w-20 rounded ml-auto" />
               </TableCell>
             </TableRow>
           </template>
@@ -92,44 +93,46 @@
               :id="`player-row-${player.uniqueIndex}`"
               :class="[
                 'hover:bg-muted/50 transition-colors',
-                isPlayerHighlighted(player) && 'bg-primary/10 ring-2 ring-primary'
+                isPlayerHighlighted(player) && 'bg-primary/10 ring-2 ring-primary',
+                player.position <= 6 && 'bg-gradient-to-r from-yellow-50 to-transparent dark:from-yellow-950/20'
               ]"
             >
-              <TableCell class="text-left">
-                <div class="flex items-center gap-2">
+              <TableCell class="text-left px-2 sm:px-4">
+                <div class="flex items-center gap-1.5 sm:gap-2">
                   <Badge 
                     :variant="getPositionVariant(player.position)" 
-                    class="font-mono text-sm min-w-[3rem] justify-center"
+                    class="font-mono text-xs sm:text-sm min-w-[2.5rem] sm:min-w-[3rem] justify-center"
                   >
                     #{{ player.position }}
                   </Badge>
-                  <TrendingUp v-if="player.positionChange && player.positionChange > 0" class="h-4 w-4 text-green-500 flex-shrink-0" />
-                  <TrendingDown v-else-if="player.positionChange && player.positionChange < 0" class="h-4 w-4 text-red-500 flex-shrink-0" />
+                  <TrendingUp v-if="player.positionChange && player.positionChange > 0" class="h-3.5 w-3.5 sm:h-4 sm:w-4 text-green-500 flex-shrink-0" />
+                  <TrendingDown v-else-if="player.positionChange && player.positionChange < 0" class="h-3.5 w-3.5 sm:h-4 sm:w-4 text-red-500 flex-shrink-0" />
                 </div>
               </TableCell>
-              <TableCell class="text-left">
-                <div class="space-y-1">
-                  <div class="font-semibold">{{ player.name }}</div>
-                  <div class="text-xs text-muted-foreground font-mono">#{{ player.uniqueIndex }}</div>
+              <TableCell class="text-left px-2 sm:px-4">
+                <div class="space-y-0.5 sm:space-y-1">
+                  <div class="font-semibold text-sm sm:text-base truncate max-w-[120px] sm:max-w-none">{{ player.name }}</div>
+                  <div class="hidden sm:block text-xs text-muted-foreground font-mono">#{{ player.uniqueIndex }}</div>
+                  <div class="sm:hidden text-xs text-muted-foreground truncate max-w-[120px]">{{ player.clubName }}</div>
                 </div>
               </TableCell>
-              <TableCell class="text-left">
-                <div class="font-medium">{{ player.clubName }}</div>
+              <TableCell class="hidden sm:table-cell text-left px-2 sm:px-4">
+                <div class="font-medium text-sm sm:text-base">{{ player.clubName }}</div>
               </TableCell>
-              <TableCell class="text-right">
-                <div class="flex flex-col items-end space-y-1">
-                  <div class="font-bold text-lg">{{ player.points.total }}</div>
+              <TableCell class="text-right px-2 sm:px-4">
+                <div class="flex flex-col items-end space-y-0.5 sm:space-y-1">
+                  <div class="font-bold text-base sm:text-lg">{{ player.points.total }}</div>
                   <PointsBreakdown :points="formatPointsBreakdown(player.points.breakdown)" size="sm" />
                 </div>
               </TableCell>
-              <TableCell class="text-center">
-                <Badge variant="outline" class="font-medium">
+              <TableCell class="hidden md:table-cell text-center px-2 sm:px-4">
+                <Badge variant="outline" class="font-medium text-xs sm:text-sm">
                   {{ getMatchesPlayed(player.points.breakdown) }}
                 </Badge>
               </TableCell>
-              <TableCell class="text-right">
+              <TableCell class="text-right px-2 sm:px-4">
                 <div class="flex justify-end">
-                  <Button variant="outline" size="sm" @click="openPlayerDetails(player)" class="gap-2">
+                  <Button variant="outline" size="sm" @click="openPlayerDetails(player)" class="gap-1 sm:gap-2 min-w-[44px] touch-manipulation">
                     <Eye class="h-4 w-4" />
                     <span class="hidden sm:inline">Détails</span>
                   </Button>
@@ -184,7 +187,7 @@ watch(searchQuery, async (newQuery) => {
     // Load all players for search when user starts typing
     loadingSearch.value = true
     try {
-      const allRankings = await getAllRankings(props.region, props.level, props.week)
+      const allRankings = await getAllRankings(props.region, props.level, props.week, newQuery)
       allPlayers.value = allRankings.map(r => ({
         ...r,
         positionChange: 0,

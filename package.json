@@ -1,5 +1,5 @@
 {
-  "name": "nuxt-app",
+  "name": "challenge-frontend",
   "type": "module",
   "private": true,
   "scripts": {
@@ -7,8 +7,9 @@
     "dev": "nuxt dev",
     "generate": "nuxt generate",
     "preview": "nuxt preview",
-    "postinstall": "nuxt prepare",
-    "deploy": "npm run build && firebase deploy --only hosting"
+    "test": "vitest run",
+    "start": "node .output/server/index.mjs",
+    "postinstall": "nuxt prepare"
   },
   "dependencies": {
     "@nuxt/eslint": "^1.8.0",
@@ -16,7 +17,6 @@
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "eslint": "^9.33.0",
-    "firebase": "^12.5.0",
     "lucide-vue-next": "^0.539.0",
     "nuxt": "^4.0.3",
     "radix-vue": "^1.9.17",
@@ -32,6 +32,7 @@
     "@nuxtjs/tailwindcss": "^6.14.0",
     "autoprefixer": "^10.4.21",
     "tailwindcss": "^3.4.17",
-    "typescript": "^5.9.2"
+    "typescript": "^5.9.2",
+    "vitest": "^3.2.4"
   }
 }

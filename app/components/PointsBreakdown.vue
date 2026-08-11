@@ -1,5 +1,5 @@
 <template>
-  <div class="flex items-center space-x-1">
+  <div class="hidden md:flex items-center space-x-1">
     <div 
       v-for="(count, pointType) in points" 
       :key="pointType"
