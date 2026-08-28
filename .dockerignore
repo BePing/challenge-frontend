@@ -1,0 +1,8 @@
+.env
+.env.*
+.firebase
+.git
+.nuxt
+.output
+node_modules
+npm-debug.log*
