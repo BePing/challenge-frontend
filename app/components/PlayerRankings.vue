@@ -1,434 +1,324 @@
 <template>
-  <Card>
-    <CardHeader class="space-y-3 sm:space-y-4 px-3 sm:px-6">
-      <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-4">
-        <div>
-          <p class="text-xs sm:text-sm text-muted-foreground" v-if="selectedLevelInfo">
-            <span class="hidden sm:inline">Niveau: {{ selectedLevelInfo.name }} • </span>{{ selectedLevelInfo.playerCount }} joueurs
-          </p>
-        </div>
-        <div class="flex items-center gap-2 sm:gap-3">
-          <PlayerSearch v-model="searchQuery" :loading="loadingSearch" />
-        </div>
+  <section aria-label="Classement" class="flex flex-wrap items-start gap-4">
+    <div class="flex min-w-0 flex-[999_1_640px] flex-col gap-3.5">
+      <div class="flex flex-wrap items-center justify-between gap-2.5">
+        <h2 class="font-display text-2xl font-extrabold tracking-[-0.8px]">
+          Classement
+          <span v-if="currentLevel" class="text-sm font-semibold tracking-normal text-pulse-ink2">
+            · {{ currentLevel.shortLabel }}<template v-if="currentLevel.count"> · {{ currentLevel.count }} joueurs</template>
+          </span>
+        </h2>
+        <PlayerSearch v-model="searchQuery" :loading="searching" />
       </div>
-      
-      <div class="space-y-3">
-        <div class="flex flex-wrap gap-2">
-          <Button
-            v-for="levelOption in levels"
-            :key="levelOption.code"
-            :variant="level === levelOption.code ? 'default' : 'outline'"
-            :class="[
-              'h-auto px-3 sm:px-4 py-2.5 sm:py-2 text-center transition-all min-h-[44px] touch-manipulation',
-              level === levelOption.code 
-                ? 'ring-2 ring-primary ring-offset-1' 
-                : 'hover:bg-muted'
-            ]"
-            size="sm"
-            @click="selectLevel(levelOption.code)"
-          >
-            <div class="flex items-center gap-1.5 sm:gap-2">
-              <div class="font-bold text-xs sm:text-sm">{{ levelOption.code }}</div>
-              <Badge variant="secondary" class="text-[10px] sm:text-xs">
-                {{ levelOption.playerCount }}
-              </Badge>
-            </div>
-          </Button>
-        </div>
+
+      <div role="group" aria-label="Niveau" class="flex flex-wrap gap-1.5">
+        <button
+          v-for="option in levels"
+          :key="option.code"
+          type="button"
+          :aria-pressed="option.code === level"
+          :class="[
+            'inline-flex min-h-9 items-center gap-[7px] rounded-full px-3.5 text-[12.5px] font-bold transition-colors',
+            option.code === level ? 'bg-pulse-ink text-white' : 'bg-pulse-surface text-pulse-ink2 hover:text-pulse-ink',
+          ]"
+          @click="emit('update:level', option.code)"
+        >
+          {{ option.shortLabel }}
+          <span v-if="option.count" class="tabular font-mono text-[10px] font-bold opacity-65">{{ option.count }}</span>
+        </button>
       </div>
-    </CardHeader>
-    <CardContent class="px-0 sm:px-6">
-      <div class="rounded-md border overflow-x-auto -mx-0 sm:mx-0">
-        <Table class="min-w-[520px] sm:min-w-[640px]">
-          <TableHeader>
-            <TableRow class="bg-muted/50">
-              <TableHead class="w-16 sm:w-20 text-left text-xs sm:text-sm">Pos</TableHead>
-              <TableHead class="text-left text-xs sm:text-sm">Joueur</TableHead>
-              <TableHead class="hidden sm:table-cell text-left text-xs sm:text-sm">Club</TableHead>
-              <TableHead class="text-right w-20 sm:w-32 text-xs sm:text-sm">Points</TableHead>
-              <TableHead class="hidden md:table-cell text-center w-24 text-xs sm:text-sm">Matchs</TableHead>
-              <TableHead class="text-right w-12 sm:w-32 text-xs sm:text-sm">Action</TableHead>
-            </TableRow>
-          </TableHeader>
-        <TableBody>
-          <!-- Loading skeleton rows -->
-          <template v-if="loading">
-            <TableRow v-for="i in 8" :key="`skeleton-${i}`">
-              <TableCell class="text-left px-2 sm:px-4">
-                <div class="flex items-center gap-1.5 sm:gap-2">
-                  <Skeleton class="h-5 w-10 sm:h-6 sm:w-12 rounded" />
-                  <Skeleton class="h-3.5 w-3.5 sm:h-4 sm:w-4 rounded" />
-                </div>
-              </TableCell>
-              <TableCell class="text-left px-2 sm:px-4">
-                <div class="space-y-0.5 sm:space-y-1">
-                  <Skeleton class="h-4 w-28 sm:w-32" />
-                  <Skeleton class="hidden sm:block h-3 w-16" />
-                  <Skeleton class="sm:hidden h-3 w-20" />
-                </div>
-              </TableCell>
-              <TableCell class="hidden sm:table-cell text-left px-2 sm:px-4">
-                <Skeleton class="h-4 w-24" />
-              </TableCell>
-              <TableCell class="text-right px-2 sm:px-4">
-                <div class="space-y-0.5 sm:space-y-1 flex flex-col items-end">
-                  <Skeleton class="h-4 w-10 sm:h-4 sm:w-12" />
-                  <Skeleton class="hidden md:block h-3 w-20" />
-                </div>
-              </TableCell>
-              <TableCell class="hidden md:table-cell text-center px-2 sm:px-4">
-                <Skeleton class="h-5 w-10 sm:h-6 sm:w-12 mx-auto rounded" />
-              </TableCell>
-              <TableCell class="text-right px-2 sm:px-4">
-                <Skeleton class="h-9 w-9 sm:h-8 sm:w-20 rounded ml-auto" />
-              </TableCell>
-            </TableRow>
-          </template>
-          
-          <!-- Actual player data -->
-          <template v-else>
-            <TableRow 
-              v-for="player in filteredPlayers" 
-              :key="player.uniqueIndex"
-              :id="`player-row-${player.uniqueIndex}`"
+
+      <div v-if="podium.length === 3" class="hidden gap-3 sm:grid sm:grid-cols-3">
+        <button
+          v-for="player in podium"
+          :key="player.uniqueIndex"
+          type="button"
+          :class="[
+            'relative flex min-w-0 flex-col gap-2.5 overflow-hidden rounded-[18px] px-[18px] py-4 text-left transition-transform hover:-translate-y-0.5',
+            player.position === 1 ? 'bg-pulse-ink text-white' : 'bg-pulse-surface text-pulse-ink',
+          ]"
+          @click="openPlayerDetails(player)"
+        >
+          <span class="flex w-full items-center justify-between">
+            <span
               :class="[
-                'hover:bg-muted/50 transition-colors',
-                isPlayerHighlighted(player) && 'bg-primary/10 ring-2 ring-primary',
-                player.position <= 6 && 'bg-gradient-to-r from-yellow-50 to-transparent dark:from-yellow-950/20'
+                'rounded-full px-[9px] py-1 font-mono text-[11px] font-extrabold text-pulse-ink',
+                player.position === 1 ? 'bg-pulse-ball' : 'bg-pulse-bg',
               ]"
-            >
-              <TableCell class="text-left px-2 sm:px-4">
-                <div class="flex items-center gap-1.5 sm:gap-2">
-                  <Badge 
-                    :variant="getPositionVariant(player.position)" 
-                    class="font-mono text-xs sm:text-sm min-w-[2.5rem] sm:min-w-[3rem] justify-center"
+            >#{{ player.position }}</span>
+            <span :class="['font-mono text-[10.5px]', player.position === 1 ? 'text-white/[0.68]' : 'text-pulse-ink2']">
+              {{ player.played }} matchs
+            </span>
+          </span>
+          <span class="block w-full min-w-0">
+            <span class="block truncate font-display text-[17px] font-extrabold tracking-[-0.4px]">{{ player.displayName }}</span>
+            <span :class="['mt-0.5 block truncate text-xs', player.position === 1 ? 'text-white/[0.68]' : 'text-pulse-ink2']">
+              {{ player.clubName }}
+            </span>
+          </span>
+          <span class="flex items-baseline gap-1.5">
+            <span class="tabular font-display text-[40px] font-extrabold leading-[0.9] tracking-[-1.6px]">{{ player.points.total }}</span>
+            <span :class="['font-mono text-[11px] font-bold', player.position === 1 ? 'text-white/[0.68]' : 'text-pulse-ink2']">
+              pts · {{ player.average }}/match
+            </span>
+          </span>
+        </button>
+      </div>
+
+      <div class="overflow-hidden rounded-[18px] bg-pulse-surface">
+        <!-- Desktop: table -->
+        <div class="hidden overflow-x-auto md:block">
+          <table class="w-full min-w-[620px] border-collapse text-left">
+            <caption class="sr-only">Classement {{ currentLevel?.shortLabel }}</caption>
+            <thead>
+              <tr class="border-b border-pulse-line text-[10px] font-extrabold uppercase tracking-[1px] text-pulse-ink2">
+                <th scope="col" class="w-[70px] py-3 pl-[18px] pr-2 font-extrabold">#</th>
+                <th scope="col" class="px-2 py-3 font-extrabold">Joueur</th>
+                <th scope="col" class="hidden px-2 py-3 font-extrabold xl:table-cell">Club</th>
+                <th scope="col" class="w-[22%] px-2 py-3 font-extrabold">Répartition</th>
+                <th scope="col" class="w-[68px] px-2 py-3 text-right font-extrabold">Matchs</th>
+                <th scope="col" class="w-[64px] px-2 py-3 text-right font-extrabold">Pts</th>
+                <th scope="col" class="w-[112px] py-3 pl-2 pr-[18px]"><span class="sr-only">Actions</span></th>
+              </tr>
+            </thead>
+            <tbody v-if="loading">
+              <tr v-for="index in 8" :key="`skeleton-${index}`" class="border-b border-pulse-line last:border-0">
+                <td class="py-3 pl-[18px] pr-2"><div class="h-[30px] w-[30px] animate-pulse rounded-[9px] bg-pulse-bg" /></td>
+                <td class="px-2 py-3"><div class="h-4 w-40 animate-pulse rounded bg-pulse-bg" /></td>
+                <td class="hidden px-2 py-3 xl:table-cell"><div class="h-4 w-28 animate-pulse rounded bg-pulse-bg" /></td>
+                <td class="px-2 py-3"><div class="h-2 w-full animate-pulse rounded-full bg-pulse-bg" /></td>
+                <td class="px-2 py-3"><div class="ml-auto h-4 w-6 animate-pulse rounded bg-pulse-bg" /></td>
+                <td class="px-2 py-3"><div class="ml-auto h-5 w-8 animate-pulse rounded bg-pulse-bg" /></td>
+                <td class="py-3 pl-2 pr-[18px]"><div class="ml-auto h-[34px] w-[86px] animate-pulse rounded-full bg-pulse-bg" /></td>
+              </tr>
+            </tbody>
+            <tbody v-else>
+              <tr
+                v-for="player in visiblePlayers"
+                :id="`player-row-${player.uniqueIndex}`"
+                :key="player.uniqueIndex"
+                class="border-b border-pulse-line transition-colors last:border-0 hover:bg-pulse-bg/60"
+              >
+                <td class="py-2.5 pl-[18px] pr-2">
+                  <span :class="['tabular flex h-[30px] w-[30px] items-center justify-center rounded-[9px] font-mono text-xs font-extrabold', rankClass(player.position)]">
+                    {{ player.position }}
+                  </span>
+                </td>
+                <td class="max-w-0 px-2 py-2.5">
+                  <div class="flex min-w-0 items-center gap-2.5">
+                    <span class="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-pulse-bg text-[11px] font-extrabold">
+                      {{ player.initials }}
+                    </span>
+                    <div class="min-w-0">
+                      <div class="truncate text-sm font-bold">{{ player.displayName }}</div>
+                      <div class="mt-px truncate font-mono text-[10.5px] text-pulse-ink2">#{{ player.uniqueIndex }}<span class="font-sans xl:hidden"> · {{ player.clubName }}</span></div>
+                    </div>
+                  </div>
+                </td>
+                <td class="hidden max-w-0 truncate px-2 py-2.5 text-[13px] text-pulse-ink2 xl:table-cell">{{ player.clubName }}</td>
+                <td class="px-2 py-2.5"><PointsBar :breakdown="player.points.breakdown" /></td>
+                <td class="tabular px-2 py-2.5 text-right font-mono text-[12.5px] font-bold text-pulse-ink2">{{ player.played }}</td>
+                <td class="tabular px-2 py-2.5 text-right font-display text-xl font-extrabold tracking-[-0.6px]">{{ player.points.total }}</td>
+                <td class="py-2.5 pl-2 pr-[18px] text-right">
+                  <button
+                    type="button"
+                    class="inline-flex min-h-[34px] items-center gap-[5px] rounded-full bg-pulse-blue-soft px-3 text-xs font-extrabold text-pulse-blue transition-colors hover:bg-pulse-blue hover:text-white"
+                    :aria-label="`Détails de ${player.displayName}`"
+                    @click="openPlayerDetails(player)"
                   >
-                    #{{ player.position }}
-                  </Badge>
-                  <TrendingUp v-if="player.positionChange && player.positionChange > 0" class="h-3.5 w-3.5 sm:h-4 sm:w-4 text-green-500 flex-shrink-0" />
-                  <TrendingDown v-else-if="player.positionChange && player.positionChange < 0" class="h-3.5 w-3.5 sm:h-4 sm:w-4 text-red-500 flex-shrink-0" />
-                </div>
-              </TableCell>
-              <TableCell class="text-left px-2 sm:px-4">
-                <div class="space-y-0.5 sm:space-y-1">
-                  <div class="font-semibold text-sm sm:text-base truncate max-w-[120px] sm:max-w-none">{{ player.name }}</div>
-                  <div class="hidden sm:block text-xs text-muted-foreground font-mono">#{{ player.uniqueIndex }}</div>
-                  <div class="sm:hidden text-xs text-muted-foreground truncate max-w-[120px]">{{ player.clubName }}</div>
-                </div>
-              </TableCell>
-              <TableCell class="hidden sm:table-cell text-left px-2 sm:px-4">
-                <div class="font-medium text-sm sm:text-base">{{ player.clubName }}</div>
-              </TableCell>
-              <TableCell class="text-right px-2 sm:px-4">
-                <div class="flex flex-col items-end space-y-0.5 sm:space-y-1">
-                  <div class="font-bold text-base sm:text-lg">{{ player.points.total }}</div>
-                  <PointsBreakdown :points="formatPointsBreakdown(player.points.breakdown)" size="sm" />
-                </div>
-              </TableCell>
-              <TableCell class="hidden md:table-cell text-center px-2 sm:px-4">
-                <Badge variant="outline" class="font-medium text-xs sm:text-sm">
-                  {{ getMatchesPlayed(player.points.breakdown) }}
-                </Badge>
-              </TableCell>
-              <TableCell class="text-right px-2 sm:px-4">
-                <div class="flex justify-end">
-                  <Button variant="outline" size="sm" @click="openPlayerDetails(player)" class="gap-1 sm:gap-2 min-w-[44px] touch-manipulation">
-                    <Eye class="h-4 w-4" />
-                    <span class="hidden sm:inline">Détails</span>
-                  </Button>
-                </div>
-              </TableCell>
-            </TableRow>
+                    Détails
+                    <ChevronRight class="h-3 w-3" :stroke-width="2.8" />
+                  </button>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <!-- Mobile: list -->
+        <ul class="md:hidden">
+          <template v-if="loading">
+            <li v-for="index in 6" :key="`m-skeleton-${index}`" class="flex items-center gap-3 border-b border-pulse-line px-3.5 py-3 last:border-0">
+              <div class="h-[30px] w-[30px] animate-pulse rounded-[9px] bg-pulse-bg" />
+              <div class="flex-1 space-y-2">
+                <div class="h-4 w-36 animate-pulse rounded bg-pulse-bg" />
+                <div class="h-1.5 w-full animate-pulse rounded-full bg-pulse-bg" />
+              </div>
+            </li>
           </template>
-        </TableBody>
-        </Table>
+          <li v-for="player in loading ? [] : visiblePlayers" :key="`m-${player.uniqueIndex}`" class="border-b border-pulse-line last:border-0">
+            <button
+              type="button"
+              class="grid w-full grid-cols-[30px_minmax(0,1fr)_44px] items-center gap-3 px-3.5 py-[11px] text-left"
+              :aria-label="`Détails de ${player.displayName}`"
+              @click="openPlayerDetails(player)"
+            >
+              <span :class="['tabular flex h-[30px] w-[30px] items-center justify-center rounded-[9px] font-mono text-xs font-extrabold', rankClass(player.position)]">
+                {{ player.position }}
+              </span>
+              <span class="min-w-0">
+                <span class="block truncate text-sm font-bold">{{ player.displayName }}</span>
+                <span class="mt-px block truncate text-[11.5px] text-pulse-ink2">{{ player.clubName }} · {{ player.played }} matchs</span>
+                <PointsBar class="mt-[7px]" :breakdown="player.points.breakdown" :show-counts="false" />
+              </span>
+              <span class="text-right">
+                <span class="tabular block font-display text-[22px] font-extrabold leading-none tracking-[-0.7px]">{{ player.points.total }}</span>
+                <span class="mt-0.5 block font-mono text-[9.5px] text-pulse-ink2">pts</span>
+              </span>
+            </button>
+          </li>
+        </ul>
+
+        <p v-if="!loading && error" class="px-[18px] py-9 text-center text-[13px] text-pulse-loss-ink">
+          Impossible de charger le classement. Réessayez dans un instant.
+        </p>
+        <p v-else-if="!loading && visiblePlayers.length === 0" class="px-[18px] py-9 text-center text-[13px] text-pulse-ink2">
+          <template v-if="searchQuery">Aucun joueur ne correspond à « {{ searchQuery }} » dans ce niveau.</template>
+          <template v-else>Aucun joueur classé dans ce niveau pour le moment.</template>
+        </p>
+
+        <div
+          v-if="!loading && visiblePlayers.length > 0"
+          class="flex flex-wrap items-center justify-between gap-2.5 border-t border-pulse-line px-3.5 py-3.5 sm:px-[18px]"
+        >
+          <span class="tabular font-mono text-[11px] text-pulse-ink2">
+            {{ visiblePlayers.length }}<template v-if="currentLevel?.count && !searchQuery"> sur {{ currentLevel.count }}</template> joueurs
+          </span>
+          <button
+            v-if="hasMore && !searchQuery"
+            type="button"
+            :disabled="loadingMore"
+            class="inline-flex min-h-10 items-center gap-2 rounded-full bg-pulse-ink px-[18px] text-[13px] font-bold text-white transition-opacity disabled:opacity-60"
+            @click="loadMorePlayers"
+          >
+            <Loader2 v-if="loadingMore" class="h-4 w-4 animate-spin" />
+            Charger plus de joueurs
+          </button>
+        </div>
       </div>
-      
-      <div v-if="hasMore" class="mt-6 text-center">
-        <Button :disabled="loadingMore" @click="loadMorePlayers">
-          <Loader2 v-if="loadingMore" class="h-4 w-4 mr-2 animate-spin" />
-          Charger Plus de Joueurs
-        </Button>
-      </div>
-    </CardContent>
-  </Card>
+    </div>
+
+    <slot name="aside" />
+  </section>
 </template>
 
-<script setup>
-import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card'
-import { Button } from '@/components/ui/button'
-import { Badge } from '@/components/ui/badge'
-import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '@/components/ui/table'
-import { Skeleton } from '@/components/ui/skeleton'
-import { TrendingUp, TrendingDown, Loader2, Eye } from 'lucide-vue-next'
+<script setup lang="ts">
+import { watchDebounced } from '@vueuse/core'
+import { ChevronRight, Loader2 } from 'lucide-vue-next'
+import type { RankingDocument } from '~/types/challenge-view'
+import { averagePoints, displayName, initials, matchesPlayed } from '~/utils/challenge-stats'
 
-const props = defineProps({
-  region: String,
-  level: String,
-  week: Number
-})
+export interface LevelOption {
+  code: string
+  shortLabel: string
+  count?: number
+}
 
-const emit = defineEmits(['update:level'])
+type RankedPlayer = RankingDocument & {
+  displayName: string
+  initials: string
+  played: number
+  average: string
+}
 
+const props = defineProps<{
+  region: string
+  level: string
+  week: number
+  levels: LevelOption[]
+}>()
+
+const emit = defineEmits<{ 'update:level': [code: string] }>()
+
+const openPlayerModal = inject<(player: RankingDocument) => void>('openPlayerModal')
+const { getRankings, getNextPage, resetPagination, hasMore } = useRankings()
+// Separate instance so a search never overwrites the main list's pagination cursor.
+const { getRankings: searchRankings } = useRankings()
+
+const players = ref<RankedPlayer[]>([])
+const searchResults = ref<RankedPlayer[] | null>(null)
 const searchQuery = ref('')
-const loadingMore = ref(false)
 const loading = ref(true)
-const openPlayerModal = inject('openPlayerModal')
+const loadingMore = ref(false)
+const searching = ref(false)
+const error = ref(false)
 
-const { getRankings, getAllRankings, getNextPage, resetPagination, hasMore } = useRankings()
-const players = ref([])
-const allPlayers = ref([]) // Store all players for search
-const highlightedPlayerId = ref(null)
-const loadingSearch = ref(false)
-
-// Watch for search query changes - load all players when user searches
-watch(searchQuery, async (newQuery) => {
-  if (newQuery && newQuery.length > 0 && allPlayers.value.length === 0) {
-    // Load all players for search when user starts typing
-    loadingSearch.value = true
-    try {
-      const allRankings = await getAllRankings(props.region, props.level, props.week, newQuery)
-      allPlayers.value = allRankings.map(r => ({
-        ...r,
-        positionChange: 0,
-        totalPoints: r.points.total,
-        matchesPlayed: getMatchesPlayed(r.points.breakdown)
-      }))
-    } catch (err) {
-      console.error('Failed to load all rankings for search:', err)
-    } finally {
-      loadingSearch.value = false
-    }
-  }
-})
-
-const filteredPlayers = computed(() => {
-  if (!searchQuery.value) {
-    highlightedPlayerId.value = null
-    return players.value
-  }
-  
-  // Use allPlayers for search if available, otherwise fallback to loaded players
-  const searchSource = allPlayers.value.length > 0 ? allPlayers.value : players.value
-  
-  const query = searchQuery.value.toLowerCase()
-  const matches = searchSource.filter(player => 
-    player.name.toLowerCase().includes(query) || 
-    player.clubName.toLowerCase().includes(query) ||
-    player.uniqueIndex.toString().includes(query)
-  )
-  
-  // Highlight the first match and auto-scroll
-  if (matches.length > 0) {
-    highlightedPlayerId.value = matches[0].uniqueIndex
-    // Auto-scroll to highlighted player
-    nextTick(() => {
-      scrollToPlayer(matches[0].uniqueIndex)
-    })
-  } else {
-    highlightedPlayerId.value = null
-  }
-  
-  return matches
-})
-
-const isPlayerHighlighted = (player) => {
-  return highlightedPlayerId.value === player.uniqueIndex
-}
-
-const scrollToPlayer = (uniqueIndex) => {
-  const element = document.getElementById(`player-row-${uniqueIndex}`)
-  if (element) {
-    element.scrollIntoView({ behavior: 'smooth', block: 'center' })
+const decorate = (ranking: RankingDocument): RankedPlayer => {
+  const played = matchesPlayed(ranking.points.breakdown)
+  return {
+    ...ranking,
+    displayName: displayName(ranking.name),
+    initials: initials(ranking.name),
+    played,
+    average: averagePoints(ranking.points.total, played),
   }
 }
 
-const getPositionVariant = (position) => {
-  if (position <= 3) return 'default'
-  if (position <= 10) return 'secondary'
-  return 'outline'
-}
+const currentLevel = computed(() => props.levels.find((option) => option.code === props.level))
+const visiblePlayers = computed(() => searchResults.value ?? players.value)
+const podium = computed(() =>
+  searchResults.value ? [] : players.value.filter((player) => player.position <= 3).slice(0, 3),
+)
 
-const openPlayerDetails = (player) => {
-  openPlayerModal(player)
-}
+const rankClass = (position: number) =>
+  position === 1
+    ? 'bg-pulse-ball text-pulse-ink'
+    : position <= 3
+      ? 'bg-pulse-ink text-white'
+      : 'bg-pulse-bg text-pulse-ink2'
+
+const openPlayerDetails = (player: RankingDocument) => openPlayerModal?.(player)
 
 const loadRankings = async () => {
   if (!props.region || !props.level || !props.week) return
-  
   loading.value = true
+  error.value = false
+  searchQuery.value = ''
+  searchResults.value = null
   resetPagination()
-  allPlayers.value = [] // Clear cached search results when changing region/level
-  
   try {
-    const rankings = await getRankings(props.region, props.level, props.week)
-    
-    // Small delay to ensure smooth transition (prevents flicker)
-    await new Promise(resolve => setTimeout(resolve, 50))
-    
-    players.value = rankings.map(r => ({
-      ...r,
-      positionChange: 0, // Could calculate from history if needed
-      totalPoints: r.points.total,
-      matchesPlayed: getMatchesPlayed(r.points.breakdown)
-    }))
-  } catch (err) {
-    console.error('Failed to load rankings:', err)
+    players.value = (await getRankings(props.region, props.level, props.week)).map(decorate)
+  } catch {
+    players.value = []
+    error.value = true
   } finally {
-    // Additional small delay before hiding skeleton
-    setTimeout(() => {
-      loading.value = false
-    }, 100)
+    loading.value = false
   }
 }
 
 const loadMorePlayers = async () => {
-  if (!props.region || !props.level || !props.week) return
-  
   loadingMore.value = true
   try {
-    const nextRankings = await getNextPage(props.region, props.level, props.week)
-    const newPlayers = nextRankings.map(r => ({
-      ...r,
-      positionChange: 0,
-      totalPoints: r.points.total,
-      matchesPlayed: getMatchesPlayed(r.points.breakdown)
-    }))
-    players.value = [...players.value, ...newPlayers]
-  } catch (err) {
-    console.error('Failed to load more players:', err)
+    const next = await getNextPage(props.region, props.level, props.week)
+    players.value = [...players.value, ...next.map(decorate)]
+  } catch {
+    error.value = true
   } finally {
     loadingMore.value = false
   }
 }
 
-const formatPointsBreakdown = (breakdown) => {
-  if (!breakdown) return { '5pt': 0, '3pt': 0, '2pt': 0, '1pt': 0, '0pt': 0 }
-  return {
-    '5pt': breakdown.count5Pts || 0,
-    '3pt': breakdown.count3Pts || 0,
-    '2pt': breakdown.count2Pts || 0,
-    '1pt': breakdown.count1Pts || 0,
-    '0pt': breakdown.count0Pts || 0
-  }
-}
-
-const getMatchesPlayed = (breakdown) => {
-  if (!breakdown) return 0
-  return (breakdown.count5Pts || 0) + 
-         (breakdown.count3Pts || 0) + 
-         (breakdown.count2Pts || 0) + 
-         (breakdown.count1Pts || 0) + 
-         (breakdown.count0Pts || 0)
-}
-
-const selectLevel = (levelCode) => {
-  emit('update:level', levelCode)
-}
-
-const { getRegionSummary } = useRegionSummary()
-const levels = ref([])
-
-// Level name mappings
-const levelNames = {
-  'NAT_WB': 'National WB',
-  'Provincial 1': 'Provincial 1',
-  'P1': 'Provincial 1',
-  'Provincial 2': 'Provincial 2',
-  'P2': 'Provincial 2',
-  'Provincial 3': 'Provincial 3',
-  'P3': 'Provincial 3',
-  'Provincial 4': 'Provincial 4',
-  'P4': 'Provincial 4',
-  'Provincial 5': 'Provincial 5',
-  'P5': 'Provincial 5',
-  'Provincial 6': 'Provincial 6',
-  'P6': 'Provincial 6'
-}
-
-// Level colors
-const levelColors = {
-  'NAT_WB': 'red',
-  'Provincial 1': 'orange',
-  'P1': 'orange',
-  'Provincial 2': 'yellow',
-  'P2': 'yellow',
-  'Provincial 3': 'green',
-  'P3': 'green',
-  'Provincial 4': 'blue',
-  'P4': 'blue',
-  'Provincial 5': 'indigo',
-  'P5': 'indigo',
-  'Provincial 6': 'purple',
-  'P6': 'purple'
-}
-
-// Load levels from region summary
-const loadLevels = async () => {
-  if (!props.region || !props.week) return
-  
-  try {
-    const regionSummary = await getRegionSummary(props.region, props.week)
-    
-    if (regionSummary && regionSummary.playersByLevel) {
-      // Convert playersByLevel object to array of levels, filtering out "N/A"
-      const levelsList = Object.keys(regionSummary.playersByLevel)
-        .filter(levelCode => levelCode !== 'N/A' && levelCode !== 'NA')
-        .map(levelCode => ({
-          code: levelCode,
-          name: levelNames[levelCode] || levelCode,
-          playerCount: regionSummary.playersByLevel[levelCode] || 0,
-          color: levelColors[levelCode] || 'gray',
-          description: `${levelNames[levelCode] || levelCode} - ${regionSummary.playersByLevel[levelCode]} joueurs`
-        }))
-        .sort((a, b) => {
-          // Sort: NAT_WB first, then P1-P6
-          if (a.code === 'NAT_WB') return -1
-          if (b.code === 'NAT_WB') return 1
-          return a.code.localeCompare(b.code)
-        })
-      
-      levels.value = levelsList
-      
-      // Auto-select first level if none selected
-      if (!props.level && levelsList.length > 0) {
-        emit('update:level', levelsList[0].code)
-      }
+watchDebounced(
+  searchQuery,
+  async (query) => {
+    const term = query.trim()
+    if (!term) {
+      searchResults.value = null
+      return
     }
-  } catch (error) {
-    console.error('Failed to load levels:', error)
-  }
-}
+    searching.value = true
+    try {
+      // Search the whole level server-side rather than only the loaded page.
+      const results = await searchRankings(props.region, props.level, props.week, 100, null, term)
+      if (searchQuery.value.trim() === term) searchResults.value = results.map(decorate)
+    } catch {
+      searchResults.value = []
+    } finally {
+      searching.value = false
+    }
+  },
+  { debounce: 250 },
+)
 
-const selectedLevelInfo = computed(() => {
-  return levels.value.find(levelOption => levelOption.code === props.level)
-})
-
-// Watch for prop changes and reload rankings
-watch([() => props.region, () => props.level, () => props.week], () => {
-  loadRankings()
-}, { immediate: true })
-
-// Watch for region/week changes to reload levels
-watch([() => props.region, () => props.week], () => {
-  loadLevels()
-}, { immediate: true })
-
-onMounted(() => {
-  loadLevels()
-  loadRankings()
-})
+watch(() => [props.region, props.level, props.week], loadRankings, { immediate: true })
 </script>
-
-<style scoped>
-/* Prevent flicker by ensuring smooth transitions */
-.fade-enter-active,
-.fade-leave-active {
-  transition: opacity 0.15s ease;
-}
-
-.fade-enter-from,
-.fade-leave-to {
-  opacity: 0;
-}
-</style>

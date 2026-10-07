@@ -1,20 +1,19 @@
 <template>
-  <div class="min-h-screen bg-background flex flex-col">
+  <div class="flex min-h-screen flex-col bg-pulse-bg font-sans text-pulse-ink">
     <AppNavigation />
-    <main class="container mx-auto py-4 sm:py-8 px-3 sm:px-4 flex-1">
+    <main class="mx-auto w-full max-w-[1280px] flex-1 px-4 py-6 sm:px-7 sm:py-7">
       <slot />
     </main>
-    <footer class="">
-      <div class="container mx-auto px-4 py-12">
-        
-        
-        <!-- Copyright -->
-        <div class="border-t pt-8">
-          <p class="text-center text-sm text-muted-foreground">
-            © {{ new Date().getFullYear() }} Challenges Beping. Développé par
-            <span class="font-semibold text-foreground">Florent Cardoen</span>
-          </p>
+    <footer class="border-t border-pulse-line bg-pulse-surface">
+      <div class="mx-auto flex max-w-[1280px] flex-wrap items-center justify-between gap-3 px-4 py-6 sm:px-7">
+        <div class="flex items-center gap-2">
+          <BepingMark :size="18" />
+          <span class="font-display text-sm font-extrabold tracking-[-0.4px]">BePing</span>
         </div>
+        <p class="text-xs text-pulse-ink2">
+          © {{ new Date().getFullYear() }} Challenges BePing · Développé par
+          <span class="font-semibold text-pulse-ink">Florent Cardoen</span>
+        </p>
       </div>
     </footer>
   </div>

@@ -16,7 +16,37 @@ module.exports = {
   		}
   	},
   	extend: {
+  		fontFamily: {
+  			sans: ['Inter', '-apple-system', 'system-ui', 'sans-serif'],
+  			display: ['"Inter Tight"', 'Inter', '-apple-system', 'system-ui', 'sans-serif'],
+  			mono: ['"JetBrains Mono"', '"SF Mono"', 'ui-monospace', 'monospace']
+  		},
   		colors: {
+  			pulse: {
+  				bg: '#EEF0F4',
+  				surface: '#FFFFFF',
+  				ink: '#0A0E1A',
+  				ink2: '#5A6072',
+  				ink3: '#9BA1B0',
+  				line: 'rgba(10,14,26,0.06)',
+  				blue: '#2F4DFF',
+  				'blue-hover': '#1A33D9',
+  				'blue-soft': '#E5EAFF',
+  				ball: '#FFE04A',
+  				win: '#0AAE60',
+  				'win-ink': '#07824A',
+  				'win-soft': '#DDF6E8',
+  				loss: '#FF3B30',
+  				'loss-ink': '#C8231A',
+  				'loss-soft': '#FFE2E0'
+  			},
+  			seg: {
+  				5: '#2F4DFF',
+  				3: '#6B82FF',
+  				2: '#A3B3FF',
+  				1: '#D3DBFF',
+  				0: '#F2554B'
+  			},
   			border: 'hsl(var(--border))',
   			input: 'hsl(var(--input))',
   			ring: 'hsl(var(--ring))',
