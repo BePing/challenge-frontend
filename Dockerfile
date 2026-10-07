@@ -11,6 +11,7 @@ FROM node:22-alpine
 WORKDIR /app
 ENV NODE_ENV=production \
     HOST=:: \
+    NITRO_HOST=:: \
     PORT=3000
 COPY --from=builder /app/.output ./.output
 USER node
