@@ -1,47 +1,38 @@
 <template>
-  <div class="relative w-full sm:w-64">
-    <Search class="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none" />
-    <Input
+  <label class="relative flex h-10 w-full items-center gap-2 rounded-xl bg-pulse-surface px-3.5 sm:w-[260px]">
+    <Search class="h-3.5 w-3.5 shrink-0 text-pulse-ink2" :stroke-width="2.2" aria-hidden="true" />
+    <span class="sr-only">Rechercher un joueur ou un club</span>
+    <input
       v-model="searchValue"
-      type="text"
-      placeholder="Rechercher un joueur..."
-      :class="['pl-10', searchValue ? 'pr-10' : 'pr-10']"
-    />
-    <Loader2
-      v-if="props.loading"
-      class="absolute right-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-primary animate-spin pointer-events-none"
-    />
+      type="search"
+      placeholder="Joueur ou club…"
+      class="min-w-0 flex-1 bg-transparent text-[13px] text-pulse-ink outline-none placeholder:text-[#7A8092] [&::-webkit-search-cancel-button]:hidden"
+    >
+    <Loader2 v-if="loading" class="h-4 w-4 shrink-0 animate-spin text-pulse-blue" aria-hidden="true" />
     <button
       v-else-if="searchValue"
-      @click="clearSearch"
-      class="absolute right-3 top-1/2 transform -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
       type="button"
+      aria-label="Effacer la recherche"
+      class="-mr-1.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-pulse-ink2 hover:bg-pulse-bg hover:text-pulse-ink"
+      @click="searchValue = ''"
     >
-      <X class="h-4 w-4" />
+      <X class="h-3.5 w-3.5" :stroke-width="2.4" />
     </button>
-  </div>
+  </label>
 </template>
 
-<script setup>
-import { Search, X, Loader2 } from 'lucide-vue-next'
-import { Input } from '@/components/ui/input'
+<script setup lang="ts">
+import { Loader2, Search, X } from 'lucide-vue-next'
 
-const props = defineProps({
-  modelValue: String,
-  loading: {
-    type: Boolean,
-    default: false
-  }
+const props = withDefaults(defineProps<{ modelValue?: string; loading?: boolean }>(), {
+  modelValue: '',
+  loading: false,
 })
 
-const emit = defineEmits(['update:modelValue'])
+const emit = defineEmits<{ 'update:modelValue': [value: string] }>()
 
 const searchValue = computed({
   get: () => props.modelValue,
-  set: (value) => emit('update:modelValue', value)
+  set: (value: string) => emit('update:modelValue', value),
 })
-
-const clearSearch = () => {
-  searchValue.value = ''
-}
 </script>

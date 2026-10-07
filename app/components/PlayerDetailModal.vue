@@ -1,303 +1,206 @@
 <template>
-  <Sheet v-model:open="isOpen">
-    <SheetContent side="right" class="w-full sm:max-w-2xl overflow-y-auto">
-      <SheetHeader v-if="player" class="mb-6">
-        <div class="flex items-start justify-between gap-4">
-          <div class="space-y-1 flex-1">
-            <SheetTitle class="text-2xl font-bold tracking-tight">{{ player.name }}</SheetTitle>
-            <div class="flex flex-wrap items-center gap-3 text-sm text-muted-foreground">
-              <div class="flex items-center gap-1.5">
-                <Building2 class="h-4 w-4" />
-                <span class="font-medium">{{ player.clubName || player.club }}</span>
+  <DialogRoot v-model:open="isOpen">
+    <DialogPortal>
+      <DialogOverlay
+        class="fixed inset-0 z-50 bg-[rgba(10,14,26,0.5)] data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:animate-in data-[state=open]:fade-in-0"
+      />
+      <DialogContent
+        class="fixed inset-y-0 right-0 z-50 w-full overflow-y-auto bg-pulse-bg font-sans text-pulse-ink shadow-[0_30px_80px_rgba(10,14,26,0.35)] duration-300 focus:outline-none data-[state=closed]:animate-out data-[state=closed]:slide-out-to-right data-[state=open]:animate-in data-[state=open]:slide-in-from-right sm:inset-y-4 sm:right-4 sm:w-[440px] sm:rounded-[24px]"
+      >
+        <template v-if="player">
+          <div class="relative overflow-hidden bg-pulse-ink px-[22px] pb-[18px] pt-5 text-white">
+            <div
+              class="pointer-events-none absolute -right-[60px] -top-20 h-[260px] w-[260px] rounded-full opacity-60"
+              style="background: radial-gradient(circle, #2F4DFF 0%, rgba(47, 77, 255, 0) 70%)"
+            />
+            <div class="relative flex items-start justify-between gap-3">
+              <div class="flex flex-wrap items-center gap-2">
+                <span class="rounded-full bg-pulse-ball px-[9px] py-1 font-mono text-[11px] font-extrabold text-pulse-ink">
+                  #{{ player.position }}
+                </span>
+                <span v-if="levelLabel" class="text-[10.5px] font-extrabold uppercase tracking-[1.1px] text-white/70">
+                  {{ levelLabel }}
+                </span>
               </div>
-              <Separator orientation="vertical" class="h-4" />
-              <div class="flex items-center gap-1.5">
-                <Hash class="h-4 w-4" />
-                <span class="font-mono">{{ player.uniqueIndex }}</span>
+              <DialogClose
+                aria-label="Fermer"
+                class="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-white/[0.12] text-white transition-colors hover:bg-white/20"
+              >
+                <X class="h-3.5 w-3.5" :stroke-width="2.6" />
+              </DialogClose>
+            </div>
+            <DialogTitle class="relative mt-3 font-display text-[28px] font-extrabold leading-[1.05] tracking-[-1px]">
+              {{ displayName(player.name) }}
+            </DialogTitle>
+            <DialogDescription class="relative mt-1.5 font-mono text-[11.5px] text-white/[0.68]">
+              {{ player.clubName }} · #{{ player.uniqueIndex }}
+            </DialogDescription>
+            <div class="relative mt-4 flex items-baseline gap-2">
+              <span class="tabular font-display text-[64px] font-extrabold leading-[0.85] tracking-[-3px]">{{ player.points.total }}</span>
+              <span class="font-mono text-xs font-bold text-white/[0.68]">points</span>
+            </div>
+            <dl class="relative mt-4 grid grid-cols-4 gap-2 border-t border-white/[0.12] pt-3.5">
+              <div v-for="stat in stats" :key="stat.label" class="flex flex-col-reverse">
+                <dt class="mt-1 font-mono text-[9.5px] uppercase tracking-[0.8px] text-white/[0.62]">{{ stat.label }}</dt>
+                <dd :class="['tabular font-display text-xl font-extrabold leading-none', stat.color]">{{ stat.value }}</dd>
+              </div>
+            </dl>
+          </div>
+
+          <div class="flex flex-col gap-3 p-3.5">
+            <div class="flex items-center gap-[18px] rounded-2xl bg-pulse-surface px-[18px] py-4">
+              <div class="relative h-[84px] w-[84px] shrink-0">
+                <svg width="84" height="84" viewBox="0 0 84 84" class="-rotate-90" aria-hidden="true">
+                  <circle cx="42" cy="42" r="35" stroke="#EEF0F4" stroke-width="10" fill="none" />
+                  <circle
+                    cx="42"
+                    cy="42"
+                    r="35"
+                    stroke="#2F4DFF"
+                    stroke-width="10"
+                    fill="none"
+                    stroke-linecap="round"
+                    :stroke-dasharray="RING"
+                    :stroke-dashoffset="RING * (1 - record.rate / 100)"
+                  />
+                </svg>
+                <span class="tabular absolute inset-0 flex items-center justify-center font-display text-xl font-extrabold tracking-[-0.6px]">
+                  {{ record.rate }}%
+                </span>
+              </div>
+              <div class="min-w-0">
+                <div class="text-[11px] font-extrabold uppercase tracking-[1px] text-pulse-ink2">Taux de victoire</div>
+                <p class="mt-1.5 text-[13px] leading-[1.45]">
+                  <strong>{{ record.wins }}</strong> rencontres avec des points, <strong>{{ record.losses }}</strong> sans point
+                  sur {{ record.played }} jouées.
+                </p>
               </div>
             </div>
-          </div>
-          <Badge variant="default" class="text-base px-4 py-1.5 shrink-0">
-            <Trophy class="h-4 w-4 mr-1.5" />
-            Position #{{ player.position }}
-          </Badge>
-        </div>
-      </SheetHeader>
 
-      <div class="space-y-8 min-h-[400px]">
-        <template v-if="loading">
-          <div class="grid grid-cols-2 gap-4">
-            <Skeleton class="h-32 w-full" />
-            <Skeleton class="h-32 w-full" />
-            <Skeleton class="h-32 w-full col-span-2" />
-          </div>
-          <Skeleton class="h-40 w-full" />
-          <Skeleton class="h-64 w-full" />
-        </template>
-        
-        <template v-else-if="player">
-          <!-- Stats Cards -->
-          <div class="grid grid-cols-2 gap-4">
-            <Card class="border-2">
-              <CardContent class="pt-6">
-                <div class="text-center space-y-2">
-                  <div class="inline-flex items-center justify-center w-12 h-12 rounded-full bg-blue-100 dark:bg-blue-950 mb-2">
-                    <TrendingUp class="h-6 w-6 text-blue-600 dark:text-blue-400" />
-                  </div>
-                  <div class="text-2xl font-bold text-blue-600 dark:text-blue-400">{{ getTotalPoints }}</div>
-                  <div class="text-xs font-medium text-muted-foreground">Points Totaux</div>
-                </div>
-              </CardContent>
-            </Card>
-            
-            <Card class="border-2">
-              <CardContent class="pt-6">
-                <div class="text-center space-y-2">
-                  <div class="inline-flex items-center justify-center w-12 h-12 rounded-full bg-green-100 dark:bg-green-950 mb-2">
-                    <Activity class="h-6 w-6 text-green-600 dark:text-green-400" />
-                  </div>
-                  <div class="text-2xl font-bold text-green-600 dark:text-green-400">{{ getMatchesPlayed }}</div>
-                  <div class="text-xs font-medium text-muted-foreground">Matchs Joués</div>
-                </div>
-              </CardContent>
-            </Card>
+            <div class="rounded-2xl bg-pulse-surface px-[18px] py-4">
+              <h3 class="mb-3 text-[11px] font-extrabold uppercase tracking-[1px] text-pulse-ink2">Répartition des points</h3>
+              <ul class="flex flex-col gap-[9px]">
+                <li v-for="tier in tiers" :key="tier.key" class="grid grid-cols-[44px_minmax(0,1fr)_28px] items-center gap-2.5">
+                  <span class="font-mono text-[11.5px] font-bold">{{ tier.label }}</span>
+                  <span class="h-2.5 overflow-hidden rounded-full bg-pulse-bg">
+                    <span :class="['block h-full rounded-full', tier.color]" :style="{ width: `${tier.percent}%` }" />
+                  </span>
+                  <span class="tabular text-right font-mono text-xs font-extrabold">{{ tier.count }}</span>
+                </li>
+              </ul>
+            </div>
 
-            <Card v-if="playerDetails && playerDetails.points?.length > 0" class="border-2 col-span-2">
-              <CardContent class="pt-6">
-                <div class="text-center space-y-2">
-                  <div class="inline-flex items-center justify-center w-12 h-12 rounded-full bg-purple-100 dark:bg-purple-950 mb-2">
-                    <Target class="h-6 w-6 text-purple-600 dark:text-purple-400" />
-                  </div>
-                  <div class="text-2xl font-bold text-purple-600 dark:text-purple-400">
-                    {{ averagePoints.toFixed(1) }}
-                  </div>
-                  <div class="text-xs font-medium text-muted-foreground">Points Moy</div>
-                </div>
-              </CardContent>
-            </Card>
-          </div>
-
-          <!-- Points Breakdown -->
-          <Card>
-            <CardHeader>
-              <CardTitle class="flex items-center gap-2">
-                <BarChart3 class="h-5 w-5 text-primary" />
-                Répartition des Points
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <PointsBreakdown :points="getPointsBreakdown" size="md" />
-            </CardContent>
-          </Card>
-
-          <!-- Performance Stats -->
-          <Card v-if="playerDetails && playerDetails.points?.length > 0">
-            <CardHeader>
-              <CardTitle class="flex items-center gap-2">
-                <TrendingUp class="h-5 w-5 text-primary" />
-                Statistiques de Performance
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div class="grid grid-cols-2 gap-4">
-                <div class="text-center p-4 bg-muted/50 rounded-lg">
-                  <div class="text-2xl font-bold text-green-600 dark:text-green-400">{{ victories }}</div>
-                  <div class="text-xs font-medium text-muted-foreground mt-1">Victoires</div>
-                </div>
-                <div class="text-center p-4 bg-muted/50 rounded-lg">
-                  <div class="text-2xl font-bold text-red-600 dark:text-red-400">{{ defeats }}</div>
-                  <div class="text-xs font-medium text-muted-foreground mt-1">Défaites</div>
-                </div>
-                <div class="text-center p-4 bg-muted/50 rounded-lg">
-                  <div class="text-2xl font-bold text-primary">{{ winRate.toFixed(0) }}%</div>
-                  <div class="text-xs font-medium text-muted-foreground mt-1">Taux de Victoire</div>
-                </div>
-                <div class="text-center p-4 bg-muted/50 rounded-lg">
-                  <div class="text-2xl font-bold text-orange-600 dark:text-orange-400">{{ playerDetails.levelAttributed || 'N/A' }}</div>
-                  <div class="text-xs font-medium text-muted-foreground mt-1">Niveau</div>
-                </div>
+            <div class="rounded-2xl bg-pulse-surface px-[18px] py-4">
+              <div class="mb-3 flex items-baseline justify-between">
+                <h3 class="text-[11px] font-extrabold uppercase tracking-[1px] text-pulse-ink2">Rencontres récentes</h3>
+                <span v-if="recentMatches.length" class="font-mono text-[10.5px] text-pulse-ink2">
+                  S{{ recentMatches[recentMatches.length - 1].week }} → S{{ recentMatches[0].week }}
+                </span>
               </div>
-            </CardContent>
-          </Card>
-
-          <!-- Recent Matches -->
-          <Card v-if="playerDetails && playerDetails.points?.length > 0">
-            <CardHeader>
-              <CardTitle class="flex items-center gap-2">
-                <Clock class="h-5 w-5 text-primary" />
-                Matchs Récents
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div class="space-y-2 max-h-80 overflow-y-auto">
-                <div 
-                  v-for="match in recentMatches" 
+              <div v-if="loading" class="grid grid-cols-5 gap-1.5">
+                <div v-for="index in 10" :key="index" class="h-[62px] animate-pulse rounded-[10px] bg-pulse-bg" />
+              </div>
+              <ol v-else-if="recentMatches.length" class="grid grid-cols-5 gap-1.5">
+                <li
+                  v-for="match in recentMatches"
                   :key="match.id"
-                  class="flex items-center justify-between p-4 bg-muted/30 rounded-lg border border-border/50 hover:bg-muted/50 transition-colors"
+                  :class="['rounded-[10px] px-1.5 py-2 text-center', match.won ? 'bg-pulse-win-soft' : 'bg-pulse-loss-soft']"
+                  :title="`Semaine ${match.week} · ${match.points} pts · ${match.victories} victoire(s)`"
                 >
-                  <div class="flex items-center gap-3 flex-1">
-                    <Badge 
-                      :variant="match.result === 'W' ? 'default' : 'destructive'"
-                      class="w-10 h-10 rounded-full flex items-center justify-center p-0 text-sm font-bold shrink-0"
-                    >
-                      {{ match.result }}
-                    </Badge>
-                    <div class="flex-1">
-                      <div class="font-semibold text-sm">{{ match.club || 'Adversaire' }}</div>
-                      <div class="flex items-center gap-2 text-xs text-muted-foreground mt-0.5">
-                        <Calendar class="h-3 w-3" />
-                        Semaine {{ match.week }}
-                      </div>
-                    </div>
+                  <div class="font-mono text-[10px] font-bold text-pulse-ink2">S{{ match.week }}</div>
+                  <div :class="['tabular mt-[3px] font-display text-lg font-extrabold', match.won ? 'text-pulse-win-ink' : 'text-pulse-loss-ink']">
+                    {{ match.points }}
                   </div>
-                  <div class="text-right">
-                    <div class="text-lg font-bold">{{ match.points }} pts</div>
-                    <div class="text-xs text-muted-foreground">{{ match.victoryCount || 0 }} victoire(s)</div>
+                  <div :class="['font-mono text-[9.5px] font-extrabold', match.won ? 'text-pulse-win-ink' : 'text-pulse-loss-ink']">
+                    {{ match.won ? 'V' : 'D' }}
                   </div>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-          
-          <Card v-else-if="playerDetails && playerDetails.points?.length === 0">
-            <CardContent class="py-12">
-              <div class="text-center space-y-2">
-                <Activity class="h-12 w-12 mx-auto text-muted-foreground opacity-50" />
-                <p class="text-muted-foreground font-medium">Aucun match enregistré</p>
-                <p class="text-sm text-muted-foreground">Les statistiques de match apparaîtront ici une fois disponibles.</p>
-              </div>
-            </CardContent>
-          </Card>
+                </li>
+              </ol>
+              <p v-else class="text-[13px] text-pulse-ink2">Aucune rencontre détaillée pour ce joueur.</p>
+            </div>
+          </div>
         </template>
-      </div>
-    </SheetContent>
-  </Sheet>
+      </DialogContent>
+    </DialogPortal>
+  </DialogRoot>
 </template>
 
-<script setup>
+<script setup lang="ts">
+import { X } from 'lucide-vue-next'
 import {
-  Sheet,
-  SheetContent,
-  SheetHeader,
-  SheetTitle,
-} from '@/components/ui/sheet'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Badge } from '@/components/ui/badge'
-import { Skeleton } from '@/components/ui/skeleton'
-import { Separator } from '@/components/ui/separator'
-import { 
-  Trophy, 
-  Building2, 
-  Hash, 
-  TrendingUp, 
-  Activity, 
-  Target,
-  BarChart3,
-  Clock,
-  Calendar
-} from 'lucide-vue-next'
-import PointsBreakdown from '@/components/PointsBreakdown.vue'
+  DialogClose,
+  DialogContent,
+  DialogDescription,
+  DialogOverlay,
+  DialogPortal,
+  DialogRoot,
+  DialogTitle,
+} from 'reka-ui'
+import type { PlayerPointsDetails, RankingDocument } from '~/types/challenge-view'
+import { averagePoints, breakdownTiers, displayName, winLoss } from '~/utils/challenge-stats'
 
-const props = defineProps({
-  open: Boolean,
-  player: Object
-})
+const RING = 2 * Math.PI * 35
 
-const emit = defineEmits(['update:open'])
+const props = defineProps<{
+  open: boolean
+  player: RankingDocument | null
+  levelLabel?: string
+}>()
+
+const emit = defineEmits<{ 'update:open': [value: boolean] }>()
 
 const isOpen = computed({
   get: () => props.open,
-  set: (value) => emit('update:open', value)
+  set: (value: boolean) => emit('update:open', value),
 })
 
 const { getPlayerDetails } = usePlayerDetails()
 const loading = ref(false)
-const playerDetails = ref(null)
+const playerDetails = ref<PlayerPointsDetails | null>(null)
 
-// Load player details when modal opens and player changes
-watch([() => props.open, () => props.player], async ([isOpen, player]) => {
-  if (isOpen && player?.uniqueIndex) {
-    await loadPlayerDetails(player.uniqueIndex)
-  } else if (!isOpen) {
-    // Reset when modal closes
-    playerDetails.value = null
-  }
-}, { immediate: true })
+watch(
+  () => [props.open, props.player?.uniqueIndex] as const,
+  async ([open, uniqueIndex]) => {
+    if (!open || !uniqueIndex) {
+      if (!open) playerDetails.value = null
+      return
+    }
+    loading.value = true
+    try {
+      playerDetails.value = await getPlayerDetails(String(uniqueIndex))
+    } catch {
+      playerDetails.value = null
+    } finally {
+      loading.value = false
+    }
+  },
+  { immediate: true },
+)
 
-const loadPlayerDetails = async (uniqueIndex) => {
-  loading.value = true
-  try {
-    const details = await getPlayerDetails(uniqueIndex)
-    playerDetails.value = details
-  } catch (err) {
-    console.error('Failed to load player details:', err)
-  } finally {
-    loading.value = false
-  }
-}
+const record = computed(() => winLoss(props.player?.points.breakdown))
+const tiers = computed(() => breakdownTiers(props.player?.points.breakdown, 'max'))
 
-const recentMatches = computed(() => {
-  if (!playerDetails.value || !playerDetails.value.points) return []
-  
-  return playerDetails.value.points.slice(0, 10).map((match, index) => ({
-    id: index,
-    result: match.pointsWon > 0 ? 'W' : 'L',
-    opponent: 'Opponent',
-    club: match.level || '',
-    points: match.pointsWon,
-    week: match.weekName,
-    victoryCount: match.victoryCount,
-    forfeit: match.forfeit
-  }))
-})
+const stats = computed(() => [
+  { label: 'Matchs', value: String(record.value.played), color: '' },
+  {
+    label: 'Moy./match',
+    value: averagePoints(props.player?.points.total ?? 0, record.value.played),
+    color: 'text-pulse-ball',
+  },
+  { label: 'Victoires', value: String(record.value.wins), color: 'text-[#3FD68F]' },
+  { label: 'Défaites', value: String(record.value.losses), color: 'text-[#FF7A72]' },
+])
 
-const formatPointsBreakdown = (breakdown) => {
-  if (!breakdown) return { '5pt': 0, '3pt': 0, '2pt': 0, '1pt': 0, '0pt': 0 }
-  return {
-    '5pt': breakdown.count5Pts || 0,
-    '3pt': breakdown.count3Pts || 0,
-    '2pt': breakdown.count2Pts || 0,
-    '1pt': breakdown.count1Pts || 0,
-    '0pt': breakdown.count0Pts || 0
-  }
-}
-
-const getMatchesPlayed = computed(() => {
-  if (!playerDetails.value || !playerDetails.value.points) return 0
-  return playerDetails.value.points.length
-})
-
-const getTotalPoints = computed(() => {
-  if (!props.player) return 0
-  return props.player.points?.total || props.player.totalPoints || 0
-})
-
-const getPointsBreakdown = computed(() => {
-  if (!props.player) return { '5pt': 0, '3pt': 0, '2pt': 0, '1pt': 0, '0pt': 0 }
-  if (props.player.points?.breakdown) {
-    return formatPointsBreakdown(props.player.points.breakdown)
-  }
-  return { '5pt': 0, '3pt': 0, '2pt': 0, '1pt': 0, '0pt': 0 }
-})
-
-const victories = computed(() => {
-  if (!playerDetails.value || !playerDetails.value.points) return 0
-  return playerDetails.value.points.filter((p) => p.pointsWon > 0).length
-})
-
-const defeats = computed(() => {
-  if (!playerDetails.value || !playerDetails.value.points) return 0
-  return playerDetails.value.points.filter((p) => p.pointsWon === 0).length
-})
-
-const winRate = computed(() => {
-  const total = getMatchesPlayed.value
-  if (total === 0) return 0
-  return (victories.value / total) * 100
-})
-
-const averagePoints = computed(() => {
-  if (!playerDetails.value || !playerDetails.value.points || playerDetails.value.points.length === 0) return 0
-  return getTotalPoints.value / playerDetails.value.points.length
-})
+const recentMatches = computed(() =>
+  [...(playerDetails.value?.points ?? [])]
+    .sort((a, b) => b.weekName - a.weekName || b.matchUniqueId - a.matchUniqueId)
+    .slice(0, 10)
+    .map((point) => ({
+      id: point.matchUniqueId,
+      week: point.weekName,
+      points: point.pointsWon,
+      victories: point.victoryCount,
+      won: point.pointsWon > 0,
+    })),
+)
 </script>

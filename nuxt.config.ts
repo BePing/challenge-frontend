@@ -10,7 +10,15 @@ export default defineNuxtConfig({
       titleTemplate: '%s',
       htmlAttrs: {
         lang: 'fr'
-      }
+      },
+      link: [
+        { rel: 'preconnect', href: 'https://fonts.googleapis.com' },
+        { rel: 'preconnect', href: 'https://fonts.gstatic.com', crossorigin: '' },
+        {
+          rel: 'stylesheet',
+          href: 'https://fonts.googleapis.com/css2?family=Inter+Tight:wght@600;700;800&family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700;800&display=swap'
+        }
+      ]
     }
   },
   ssr: true,

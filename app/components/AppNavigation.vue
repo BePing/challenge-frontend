@@ -1,108 +1,110 @@
 <template>
-  <header class="border-b bg-card">
-    <div class="container mx-auto px-4">
-      <div class="flex items-center justify-between py-4">
-        <!-- Logo and Title -->
-        <div class="flex items-center gap-2 sm:gap-4">
-          <Trophy class="h-6 w-6 sm:h-8 sm:w-8 text-primary flex-shrink-0" />
-          <div>
-            <h1 class="text-lg sm:text-xl font-bold">{{ challenge?.shortName || challenge?.name || 'Challenges' }}</h1>
-            <p class="hidden sm:block text-sm text-muted-foreground">
-              {{ challenge?.unofficialLabel || 'Beping' }}
-            </p>
-          </div>
-        </div>
+  <header class="sticky top-0 z-40 border-b border-pulse-line bg-pulse-surface/95 backdrop-blur">
+    <div class="mx-auto flex min-h-16 max-w-[1280px] items-center gap-4 px-4 sm:gap-7 sm:px-7">
+      <NuxtLink
+        :to="challenge ? challengePath(challenge.slug) : '/'"
+        class="flex min-w-0 items-center gap-2 text-pulse-ink"
+      >
+        <BepingMark :size="24" />
+        <span class="truncate font-display text-lg font-extrabold tracking-[-0.6px] sm:text-xl">
+          {{ challenge?.shortName || challenge?.name || 'Challenges' }}
+        </span>
+        <span class="hidden rounded-md bg-pulse-bg px-[7px] py-[3px] font-mono text-[10px] font-bold text-pulse-ink2 lg:inline">
+          par BePing
+        </span>
+      </NuxtLink>
 
-        <!-- Main Navigation -->
-        <nav class="hidden md:flex items-center gap-1">
-          <NuxtLink 
-            :to="challenge ? `/challenges/${challenge.slug}` : '/'"
-            class="text-sm font-medium hover:text-primary transition-colors px-3 py-2 rounded-md"
-            active-class="text-primary font-semibold bg-muted"
-          >
-            Accueil
-          </NuxtLink>
-          <NuxtLink
-            v-if="challenges.length > 1"
-            to="/"
-            class="text-sm font-medium hover:text-primary transition-colors px-3 py-2 rounded-md"
-          >
-            Changer de challenge
-          </NuxtLink>
-          <Separator orientation="vertical" class="h-6 mx-1" />
-          <NuxtLink 
-            v-for="region in regions" 
-            :key="region.code"
-            :to="`/challenges/${challenge.slug}/region/${region.code.toLowerCase().replace(/_/g, '-')}`"
-            class="text-sm font-medium hover:text-primary transition-colors px-3 py-2 rounded-md"
-            active-class="text-primary font-semibold bg-muted"
-          >
-            {{ region.name }}
-          </NuxtLink>
-        </nav>
+      <nav aria-label="Régions" class="hidden self-stretch md:flex">
+        <NuxtLink
+          v-for="item in links"
+          :key="item.to"
+          :to="item.to"
+          :aria-current="item.active ? 'page' : undefined"
+          :class="[
+            'relative flex items-center px-3 text-[13.5px] transition-colors',
+            item.active ? 'font-extrabold text-pulse-ink' : 'font-semibold text-pulse-ink2 hover:text-pulse-ink',
+          ]"
+        >
+          {{ item.label }}
+          <span v-if="item.active" class="absolute inset-x-3 bottom-0 h-[3px] rounded-sm bg-pulse-blue" />
+        </NuxtLink>
+      </nav>
 
-        <!-- Right Section -->
-        <div class="flex items-center gap-3">
-          <!-- Mobile Menu -->
-          <Sheet>
-            <SheetTrigger as-child>
-              <Button variant="ghost" size="sm" class="md:hidden">
-                <Menu class="h-5 w-5" />
-              </Button>
-            </SheetTrigger>
-            <SheetContent>
-              <SheetHeader>
-                <SheetTitle>Navigation</SheetTitle>
-              </SheetHeader>
-              <div class="mt-6 space-y-4">
-                <NuxtLink 
-                  :to="challenge ? `/challenges/${challenge.slug}` : '/'"
-                  class="text-lg font-medium hover:text-primary transition-colors block px-3 py-2 rounded-md"
-                  active-class="text-primary font-semibold bg-muted"
-                >
-                  Accueil
-                </NuxtLink>
+      <div class="ml-auto flex items-center gap-2">
+        <span
+          v-if="publication"
+          class="rounded-full bg-pulse-ink px-3 py-2 font-mono text-xs font-extrabold text-white sm:px-3.5"
+        >
+          <span class="sm:hidden">S{{ publication.week }}</span>
+          <span class="hidden sm:inline">Semaine {{ publication.week }}</span>
+        </span>
+
+        <Sheet>
+          <SheetTrigger as-child>
+            <button
+              type="button"
+              aria-label="Ouvrir la navigation"
+              class="flex h-10 w-10 items-center justify-center rounded-full bg-pulse-bg text-pulse-ink md:hidden"
+            >
+              <Menu class="h-5 w-5" />
+            </button>
+          </SheetTrigger>
+          <SheetContent class="bg-pulse-bg">
+            <SheetHeader>
+              <SheetTitle class="font-display text-xl font-extrabold tracking-tight">Navigation</SheetTitle>
+            </SheetHeader>
+            <nav aria-label="Régions" class="mt-6 flex flex-col gap-1">
+              <SheetClose v-for="item in links" :key="item.to" as-child>
                 <NuxtLink
-                  v-if="challenges.length > 1"
-                  to="/"
-                  class="text-lg font-medium hover:text-primary transition-colors block px-3 py-2 rounded-md"
+                  :to="item.to"
+                  :aria-current="item.active ? 'page' : undefined"
+                  :class="[
+                    'rounded-xl px-4 py-3 text-base',
+                    item.active ? 'bg-pulse-ink font-bold text-white' : 'font-semibold text-pulse-ink hover:bg-pulse-surface',
+                  ]"
                 >
-                  Changer de challenge
+                  {{ item.label }}
                 </NuxtLink>
-                <Separator />
-                <h3 class="text-lg font-medium text-muted-foreground mb-4">Régions</h3>
-                <div class="space-y-3">
-                  <NuxtLink 
-                    v-for="region in regions" 
-                    :key="region.code"
-                    :to="`/challenges/${challenge.slug}/region/${region.code.toLowerCase().replace(/_/g, '-')}`"
-                    class="text-lg font-medium hover:text-primary transition-colors block px-3 py-2 rounded-md"
-                    active-class="text-primary font-semibold bg-muted"
-                  >
-                    {{ region.name }}
-                  </NuxtLink>
-                </div>
-              </div>
-            </SheetContent>
-          </Sheet>
-        </div>
+              </SheetClose>
+              <NuxtLink
+                v-if="challenges.length > 1"
+                to="/"
+                class="mt-2 rounded-xl px-4 py-3 text-sm font-semibold text-pulse-blue"
+              >
+                Changer de challenge
+              </NuxtLink>
+            </nav>
+          </SheetContent>
+        </Sheet>
       </div>
     </div>
   </header>
 </template>
 
-<script setup>
-import { Trophy, Menu } from 'lucide-vue-next'
-import { Button } from '@/components/ui/button'
+<script setup lang="ts">
+import { Menu } from 'lucide-vue-next'
 import {
   Sheet,
+  SheetClose,
   SheetContent,
   SheetHeader,
   SheetTitle,
   SheetTrigger,
 } from '@/components/ui/sheet'
-import { Separator } from '@/components/ui/separator'
 
-const { challenge, challenges } = useChallengeContext()
-const { regions } = useChampionship()
+const route = useRoute()
+const { challenge, challenges, publication } = useChallengeContext()
+
+const links = computed(() => {
+  if (!challenge.value) return []
+  const slug = challenge.value.slug
+  const home = challengePath(slug)
+  return [
+    { label: 'Accueil', to: home, active: route.path === home },
+    ...challenge.value.regions.map((region) => {
+      const to = regionPath(slug, region.code)
+      return { label: region.label, to, active: route.path === to }
+    }),
+  ]
+})
 </script>

@@ -1,25 +1,50 @@
 <template>
-  <div v-if="challenge && publication" class="space-y-5 sm:space-y-6 md:space-y-8">
-    <div class="flex flex-col gap-2">
-      <Badge variant="secondary" class="w-fit">{{ challenge.unofficialLabel }}</Badge>
-      <h1 class="text-xl sm:text-2xl md:text-4xl font-bold">
-        {{ challenge.name }} — {{ regionName }}
+  <div v-if="challenge && publication" class="flex flex-col gap-[22px]">
+    <div>
+      <div class="text-[11px] font-extrabold uppercase tracking-[1px] text-pulse-ink2">
+        {{ challenge.unofficialLabel }}
+      </div>
+      <h1 class="mt-2 font-display text-[34px] font-extrabold leading-none tracking-[-1.4px] sm:text-[44px] sm:tracking-[-1.8px]">
+        {{ challenge.shortName || challenge.name }} · {{ regionName }}
       </h1>
-      <p class="text-sm text-muted-foreground">Semaine {{ publication.week }}</p>
+      <p class="mt-2 font-mono text-xs text-pulse-ink2">
+        Semaine {{ publication.week }} · publié le {{ publishedOn }}
+      </p>
     </div>
-    <RegionSummary :region="regionCode" :week="publication.week" />
+
+    <RegionSummary
+      :summary="summary ?? null"
+      :insights="insights"
+      :region-name="regionName"
+      :week="publication.week"
+      :level-count="levelOptions.length"
+      :loading="summaryPending"
+    />
+
     <PlayerRankings
       :region="regionCode"
       :level="selectedLevel"
       :week="publication.week"
+      :levels="levelOptions"
       @update:level="selectedLevel = $event"
+    >
+      <template #aside>
+        <RegionTrends :insights="insights" />
+      </template>
+    </PlayerRankings>
+
+    <PlayerDetailModal
+      v-model:open="showPlayerModal"
+      :player="selectedPlayer"
+      :level-label="selectedLevelLabel"
     />
-    <PlayerDetailModal v-model:open="showPlayerModal" :player="selectedPlayer" />
   </div>
 </template>
 
 <script setup lang="ts">
-import { Badge } from '@/components/ui/badge'
+import type { RankingDocument } from '~/types/challenge-view'
+import { regionInsights } from '~/utils/ai-summary'
+import { levelShortLabel } from '~/utils/challenge-stats'
 
 const route = useRoute()
 const { challenge, publication, selectChallenge } = useChallengeContext()
@@ -31,13 +56,39 @@ const regionCode = String(route.params.id).toUpperCase().replaceAll('-', '_')
 const regionName = computed(
   () => challenge.value?.regions.find((region) => region.code === regionCode)?.label ?? regionCode,
 )
+
+const { getRegionSummary } = useRegionSummary()
+const { data: summary, pending: summaryPending } = await useAsyncData(
+  `challenge-summary-${challenge.value.slug}-${regionCode}-${publication.value.week}`,
+  () => getRegionSummary(regionCode, publication.value?.week ?? 0),
+)
+const insights = computed(() => regionInsights(summary.value?.aiSummary))
+
+const levelOptions = computed(() =>
+  (challenge.value?.levels ?? []).map((level) => ({
+    code: level.code,
+    shortLabel: levelShortLabel(level.code, level.label),
+    count: summary.value?.playersByLevel?.[level.code],
+  })),
+)
+
 const selectedLevel = ref(challenge.value.levels[0]?.code ?? '')
 const showPlayerModal = ref(false)
-const selectedPlayer = ref<unknown>(null)
-provide('openPlayerModal', (player: unknown) => {
+const selectedPlayer = ref<RankingDocument | null>(null)
+const selectedLevelLabel = computed(() => {
+  const code = selectedPlayer.value?.level
+  return levelOptions.value.find((option) => option.code === code)?.shortLabel ?? code
+})
+provide('openPlayerModal', (player: RankingDocument) => {
   selectedPlayer.value = player
   showPlayerModal.value = true
 })
+
+const publishedOn = computed(() =>
+  publication.value
+    ? new Intl.DateTimeFormat('fr-BE', { dateStyle: 'long' }).format(new Date(publication.value.publishedAt))
+    : '',
+)
 
 useSeoMeta({
   title: computed(() => `${challenge.value?.name} — ${regionName.value}`),

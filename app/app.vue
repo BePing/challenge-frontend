@@ -28,7 +28,7 @@ useHead({
     { name: 'twitter:card', content: 'summary_large_image' },
     
     // Mobile
-    { name: 'theme-color', content: '#0F172A' },
+    { name: 'theme-color', content: '#0A0E1A' },
     { name: 'apple-mobile-web-app-capable', content: 'yes' },
     { name: 'apple-mobile-web-app-status-bar-style', content: 'default' },
     { name: 'apple-mobile-web-app-title', content: 'Challenges Beping' }

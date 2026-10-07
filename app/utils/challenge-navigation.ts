@@ -20,3 +20,8 @@ export const challengePublicationState = (
       }
     : { kind: 'first-publication-pending' as const }
 }
+
+export const regionSlug = (code: string) => code.toLowerCase().replace(/_/g, '-')
+
+export const regionPath = (slug: string, regionCode: string) =>
+  `${challengePath(slug)}/region/${regionSlug(regionCode)}`
